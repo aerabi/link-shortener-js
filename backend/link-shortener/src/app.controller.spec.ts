@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { tap } from "rxjs";
+import { tap } from 'rxjs';
 
 describe('AppController', () => {
   let appController: AppController;
@@ -22,12 +22,12 @@ describe('AppController', () => {
   });
 
   describe('shorten', () => {
-    it('should return a valid string', done => {
+    it('should return a valid string', (done) => {
       const url = 'aerabi.com';
       appController
         .shorten(url)
-        .pipe(tap(hash => expect(hash).toBeTruthy()))
+        .pipe(tap((hash) => expect(hash).toBeTruthy()))
         .subscribe({ complete: done });
-    })
+    });
   });
 });

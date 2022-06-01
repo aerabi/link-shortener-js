@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Query } from '@nestjs/common';
 import { AppService } from './app.service';
-import { Observable } from "rxjs";
+import { Observable } from 'rxjs';
 
 @Controller()
 export class AppController {
