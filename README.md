@@ -363,3 +363,157 @@ export class AppService {
 ```
 
 Run the tests again, and they pass. :muscle:
+
+### Add a Real Database
+
+So far, we created the repositories that store the mappings in memory.
+That's okay for testing, but not suitable for production, as we'll lose the mappings when the server stops.
+
+Redis is an appropriate database for the job because it is/has a persistent key-value store.
+
+To add Redis to the stack, let's create a Docker-Compose file with Redis on it.
+Create a file named `docker-compose.yaml` in the root of the project:
+
+```yaml
+version: "3.7"
+
+services:
+  redis:
+    image: 'redis'
+  dev:
+    image: 'node:latest'
+    command: bash -c "cd /app && npm run start:dev"
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    volumes:
+      - './backend/link-shortener:/app'
+    ports:
+      - '3000:3000'
+    depends_on:
+      - redis
+```
+
+Install Redis package (run this command inside `backend/link-shortener`):
+
+```bash
+npm install redis@4.1.0 --save
+```
+
+Inside `src`, create a repository that uses Redis, `app.repository.redis.ts`:
+
+```typescript
+import { AppRepository } from './app.repository';
+import { Observable, from, mergeMap } from 'rxjs';
+import { createClient, RedisClientType } from 'redis';
+
+export class AppRepositoryRedis implements AppRepository {
+  private readonly redisClient: RedisClientType;
+
+  constructor() {
+    const host = process.env.REDIS_HOST || 'redis';
+    const port = +process.env.REDIS_PORT || 6379;
+    this.redisClient = createClient({
+      url: `redis://${host}:${port}`,
+    });
+    from(this.redisClient.connect()).subscribe({ error: console.error });
+    this.redisClient.on('connect', () => console.log('Redis connected'));
+    this.redisClient.on('error', console.error);
+  }
+
+  get(hash: string): Observable<string> {
+    return from(this.redisClient.get(hash));
+  }
+
+  put(hash: string, url: string): Observable<string> {
+    return from(this.redisClient.set(hash, url)).pipe(
+            mergeMap(() => from(this.redisClient.get(hash))),
+    );
+  }
+}
+```
+
+And finally change the provider in `app.module.ts` so that the service uses Redis repository instead of the hashmap one:
+
+```typescript
+import { Module } from '@nestjs/common';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { AppRepositoryTag } from './app.repository';
+import { AppRepositoryRedis } from "./app.repository.redis";
+
+@Module({
+  imports: [],
+  controllers: [AppController],
+  providers: [
+    AppService,
+    { provide: AppRepositoryTag, useClass: AppRepositoryRedis }, // <-- here
+  ],
+})
+export class AppModule {}
+```
+
+### Finalize the Backend
+
+Now, head back to `app.controller.ts` and create another endpoint for redirect:
+
+```typescript
+import { Body, Controller, Get, Param, Post, Redirect } from '@nestjs/common';
+import { AppService } from './app.service';
+import { map, Observable, of } from 'rxjs';
+
+interface ShortenResponse {
+  hash: string;
+}
+
+interface ErrorResponse {
+  error: string;
+  code: number;
+}
+
+@Controller()
+export class AppController {
+  constructor(private readonly appService: AppService) {}
+
+  @Get()
+  getHello(): string {
+    return this.appService.getHello();
+  }
+
+  @Post('shorten')
+  shorten(@Body('url') url: string): Observable<ShortenResponse | ErrorResponse> {
+    if (!url) {
+      return of({ error: `No url provided. Please provide in the body. E.g. {'url':'https://google.com'}`, code: 400 });
+    }
+    return this.appService.shorten(url).pipe(map(hash => ({ hash })));
+  }
+
+  @Get(':hash')
+  @Redirect()
+  retrieveAndRedirect(@Param('hash') hash): Observable<{ url: string }> {
+    return this.appService.retrieve(hash).pipe(map(url => ({ url })));
+  }
+}
+```
+
+Run the whole application using Docker Compose:
+
+```bash
+docker-cmpose up -d
+```
+
+Then visit the application at [`localhost:3000`](http://localhost:3000) and you should see a "Hello World!" message.
+To shorten a new link, use the following cURL command:
+
+```bash
+curl -XPOST -d "url1=https://aerabi.com" localhost:3000/shorten
+```
+
+Take a look at the response:
+
+```json
+{"hash":"350fzr"}
+```
+
+The hash differs on your machine. You can use it to redirect to the original link.
+Open a web browser and visit [`localhost:3000/350fzr`](http://localhost:3000/350fzr).

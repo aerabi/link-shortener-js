@@ -1,0 +1,19 @@
+version: "3.7"
+
+services:
+  redis:
+    image: 'redis'
+    ports:
+      - '6379:6379'
+  dev:
+    image: 'node:latest'
+    command: bash -c "cd /app && npm run start:dev"
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    volumes:
+      - './backend/link-shortener:/app'
+    ports:
+      - '3000:3000'
+    depends_on:
+      - redis

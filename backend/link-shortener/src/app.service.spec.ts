@@ -1,8 +1,8 @@
-import { Test, TestingModule } from "@nestjs/testing";
-import { AppService } from "./app.service";
-import { AppRepositoryTag } from "./app.repository";
-import { AppRepositoryHashmap } from "./app.repository.hashmap";
-import { mergeMap, tap } from "rxjs";
+import { Test, TestingModule } from '@nestjs/testing';
+import { AppService } from './app.service';
+import { AppRepositoryTag } from './app.repository';
+import { AppRepositoryHashmap } from './app.repository.hashmap';
+import { mergeMap, tap } from 'rxjs';
 
 describe('AppService', () => {
   let appService: AppService;
@@ -19,12 +19,13 @@ describe('AppService', () => {
   });
 
   describe('retrieve', () => {
-    it('should retrieve the saved URL', done => {
+    it('should retrieve the saved URL', (done) => {
       const url = 'aerabi.com';
-      appService.shorten(url)
-        .pipe(mergeMap(hash => appService.retrieve(hash)))
-        .pipe(tap(retrieved => expect(retrieved).toEqual(url)))
-        .subscribe({ complete: done })
+      appService
+        .shorten(url)
+        .pipe(mergeMap((hash) => appService.retrieve(hash)))
+        .pipe(tap((retrieved) => expect(retrieved).toEqual(url)))
+        .subscribe({ complete: done });
     });
   });
 });
