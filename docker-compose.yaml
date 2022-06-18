@@ -2,9 +2,10 @@ version: "3.7"
 
 services:
   redis:
-    image: 'redis'
+    image: 'redis/redis-stack'
     ports:
       - '6379:6379'
+      - '8001:8001'
   dev:
     image: 'node:latest'
     command: bash -c "cd /app && npm run start:dev"
