@@ -6,7 +6,7 @@ services:
     ports:
       - '6379:6379'
   dev:
-    image: 'node:latest'
+    image: 'node:16'
     command: bash -c "cd /app && npm run start:dev"
     environment:
       REDIS_HOST: redis
