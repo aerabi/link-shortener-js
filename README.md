@@ -375,13 +375,14 @@ To add Redis to the stack, let's create a Docker-Compose file with Redis on it.
 Create a file named `docker-compose.yaml` in the root of the project:
 
 ```yaml
-version: "3.7"
-
 services:
   redis:
-    image: 'redis'
+    image: 'redis/redis-stack'
+    ports:
+      - '6379:6379'
+      - '8001:8001'
   dev:
-    image: 'node:latest'
+    image: 'node:16'
     command: bash -c "cd /app && npm run start:dev"
     environment:
       REDIS_HOST: redis
