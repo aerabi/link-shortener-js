@@ -1,5 +1,4 @@
 import { AppRepository } from './app.repository';
-import { Observable, from, mergeMap } from 'rxjs';
 import { createClient, RedisClientType } from 'redis';
 
 export class AppRepositoryRedis implements AppRepository {
@@ -11,18 +10,15 @@ export class AppRepositoryRedis implements AppRepository {
     this.redisClient = createClient({
       url: `redis://${host}:${port}`,
     });
-    from(this.redisClient.connect()).subscribe({ error: console.error });
     this.redisClient.on('connect', () => console.log('Redis connected'));
     this.redisClient.on('error', console.error);
   }
 
-  get(hash: string): Observable<string> {
-    return from(this.redisClient.get(hash));
+  get(hash: string): Promise<string> {
+    return this.redisClient.get(hash);
   }
 
-  put(hash: string, url: string): Observable<string> {
-    return from(this.redisClient.set(hash, url)).pipe(
-      mergeMap(() => from(this.redisClient.get(hash))),
-    );
+  async put(hash: string, url: string): Promise<void> {
+    await this.redisClient.set(hash, url);
   }
 }
