@@ -1,6 +1,5 @@
 import { AppRepository } from './app.repository';
 
-
 export class AppRepositoryHashmap implements AppRepository {
   private readonly hashMap: Map<string, string>;
 
