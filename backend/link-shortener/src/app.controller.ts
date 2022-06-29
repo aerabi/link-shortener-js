@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Post, Redirect } from '@nestjs/common';
 import { AppService } from './app.service';
-import { map, Observable, of } from 'rxjs';
+
 
 interface ShortenResponse {
   hash: string;
@@ -21,21 +21,18 @@ export class AppController {
   }
 
   @Post('shorten')
-  shorten(
-    @Body('url') url: string,
-  ): Observable<ShortenResponse | ErrorResponse> {
+  async shorten(@Body('url') url: string): Promise<ShortenResponse | ErrorResponse> {
     if (!url) {
-      return of({
-        error: `No url provided. Please provide in the body. E.g. {'url':'https://google.com'}`,
-        code: 400,
-      });
+      return { error: `No url provided. Please provide in the body. E.g. {'url':'https://google.com'}`, code: 400 };
     }
-    return this.appService.shorten(url).pipe(map((hash) => ({ hash })));
+    const hash =  await this.appService.shorten(url);
+
+    return { hash };
   }
 
   @Get(':hash')
   @Redirect()
-  retrieveAndRedirect(@Param('hash') hash): Observable<{ url: string }> {
-    return this.appService.retrieve(hash).pipe(map((url) => ({ url })));
+  async retrieveAndRedirect(@Param('hash') hash): Promise<{ url: string }> {
+    return { url: await this.appService.retrieve(hash) };
   }
 }
