@@ -1,5 +1,4 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { map, Observable } from 'rxjs';
 import { AppRepository, AppRepositoryTag } from './app.repository';
 
 @Injectable()
@@ -12,12 +11,14 @@ export class AppService {
     return 'Hello World!';
   }
 
-  shorten(url: string): Observable<string> {
+  async shorten(url: string): Promise<string> {
     const hash = Math.random().toString(36).slice(7);
-    return this.appRepository.put(hash, url).pipe(map(() => hash));
+    await this.appRepository.put(hash, url);
+
+    return hash;
   }
 
-  retrieve(hash: string): Observable<string> {
+  retrieve(hash: string): Promise<string> {
     return this.appRepository.get(hash);
   }
 }
