@@ -1,38 +1,30 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { tap } from 'rxjs';
-import { AppRepositoryTag } from './app.repository';
-import { AppRepositoryHashmap } from './app.repository.hashmap';
+import { Test, TestingModule } from "@nestjs/testing";
+import { AppService } from "./app.service";
+import { AppRepositoryTag } from "./app.repository";
+import { AppRepositoryHashmap } from "./app.repository.hashmap";
 
-describe('AppController', () => {
-  let appController: AppController;
+
+describe('AppService', () => {
+  let appService: AppService;
 
   beforeEach(async () => {
     const app: TestingModule = await Test.createTestingModule({
-      controllers: [AppController],
       providers: [
-        AppService,
         { provide: AppRepositoryTag, useClass: AppRepositoryHashmap },
+        AppService,
       ],
     }).compile();
 
-    appController = app.get<AppController>(AppController);
+    appService = app.get<AppService>(AppService);
   });
 
-  describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('Hello World!');
-    });
-  });
+  describe('retrieve', () => {
+    it('should retrieve the saved URL', async () => {
+      const url = 'docker.com';
+      const hash = await appService.shorten(url);
+      const retrieveResult =  await appService.retrieve(hash)));
+expect(retrieved).toEqual(url);
 
-  describe('shorten', () => {
-    it('should return a valid string', (done) => {
-      const url = 'aerabi.com';
-      appController
-        .shorten(url)
-        .pipe(tap((hash) => expect(hash).toBeTruthy()))
-        .subscribe({ complete: done });
     });
   });
 });
