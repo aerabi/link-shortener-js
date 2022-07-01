@@ -4,15 +4,23 @@ services:
     ports:
       - '6379:6379'
       - '8001:8001'
+    networks:
+      - urlnet
   dev:
-    image: 'node:16'
-    command: bash -c "cd /app && npm run start:dev"
+    build:
+      context: ./backend/link-shortener
+      dockerfile: Dockerfile
     environment:
       REDIS_HOST: redis
       REDIS_PORT: 6379
-    volumes:
-      - './backend/link-shortener:/app'
     ports:
       - '3000:3000'
+    volumes:
+      - './backend/link-shortener:/app'
     depends_on:
       - redis
+    networks:
+      - urlnet
+
+networks:
+  urlnet:
