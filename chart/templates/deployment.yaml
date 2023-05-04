@@ -1,0 +1,63 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "link-shortener-js.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+  {{- include "link-shortener-js.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "link-shortener-js.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+      {{- include "link-shortener-js.labels" . | nindent 8 }}
+      {{- if .Values.podAnnotations }}
+      annotations:
+      {{- .Values.podAnnotations | toYaml | nindent 8 }}
+      {{- end }}
+    spec:
+      containers:
+        - name: {{ include "link-shortener-js.fullname" . }}
+          image: "{{ .Values.image.repository }}:{{ default .Chart.AppVersion .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          workingDir: /usr/src/app
+          {{- if .Values.command }}
+          command: {{ .Values.command | toJson }}
+          {{- end }}
+          env:
+          {{- include "link-shortener-js.envVars" .Values.envVars | nindent 12 }}
+          ports:
+          {{- range $key, $val := .Values.ports }}
+            - name: {{ $val.name | quote }}
+              containerPort: {{ $val.number }}
+          {{- end }}
+          {{- if .Values.resources }}
+          resources:
+          {{ .Values.resources | toYaml | nindent 10 }}
+          {{- end }}
+          {{- if .Values.health }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.health.path }}
+              port: {{ .Values.health.port }}
+            initialDelaySeconds: {{ .Values.health.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.health.liveness.periodSeconds }}
+            timeoutSeconds: {{ .Values.health.liveness.timeoutSeconds }}
+            failureThreshold: {{ .Values.health.liveness.failureThreshold }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.health.path }}
+              port: {{ .Values.health.port }}
+            initialDelaySeconds: {{ .Values.health.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.health.readiness.periodSeconds }}
+            timeoutSeconds: {{ .Values.health.readiness.timeoutSeconds }}
+            failureThreshold: {{ .Values.health.readiness.failureThreshold }}
+          {{- end }}
+      {{- if .Values.imagePullSecrets -}}
+      imagePullSecrets:
+      {{- .Values.imagePullSecrets | toYaml | nindent 6 }}
+      {{- end }}

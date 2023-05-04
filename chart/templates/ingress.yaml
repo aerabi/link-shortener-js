@@ -1,0 +1,35 @@
+{{- if .Values.ingress }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "link-shortener-js.fullname" . }}
+  labels:
+  {{- include "link-shortener-js.labels" . | nindent 4 }}
+  annotations:
+    {{- if .Values.ingress.alb }}
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/scheme: {{ .Values.ingress.alb.scheme }}
+    alb.ingress.kubernetes.io/group.name: {{ .Values.ingress.alb.group_name }}
+    # no health check
+    {{- if .Values.ingress.alb.tls }}
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS":443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: '443'
+    {{- end }}
+    {{- end }}
+    {{- if .Values.ingress.externalDNS }}
+    external-dns.alpha.kubernetes.io/hostname: {{ .Values.ingress.hostname }}
+    {{- end }}
+spec:
+  rules:
+    - host: {{ .Values.ingress.hostname }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "link-shortener-js.fullname" . }}
+                port:
+                  name: {{ .Values.ingress.targetPort }}
+{{- end }}
