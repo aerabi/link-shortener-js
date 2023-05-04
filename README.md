@@ -18,6 +18,7 @@ The rest of this README contains instructions to create this project from scratc
   * [Add a Real Database](#add-a-real-database)
   * [Finalize the Backend](#finalize-the-backend)
 - [Push to Docker Registry](#push-to-docker-registry)
+- [Deploy to a Kubernetes Cluster](#deploy-to-a-kubernetes-cluster)
 
 ## Build From Scratch
 
@@ -553,7 +554,13 @@ Note. To push it under your own Docker Hub namespace, you have to change the tag
 
 ## Deploy to a Kubernetes Cluster
 
-Note. For this step, you need to have `kubectl` and `helm` installed, and have the correct Kubernetes context set.
+Note. For this step, you need to have `kubectl` and `helm` installed.
+
+If you don't have a Kubernetes cluster already configured, you can use Docker Desktop's Kubernetes cluster running locally:
+
+```bash
+kubectl config use-context docker-desktop
+```
 
 On your Kubernetes cluster, create a namespace called `links-shortener-js`:
 
