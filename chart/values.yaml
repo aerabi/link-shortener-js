@@ -1,0 +1,44 @@
+replicaCount: 1
+
+image:
+  repository: aerabi/link-shortener-js
+  pullPolicy: Always
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: ClusterIP
+
+ports:
+  internal:
+    name: "api"
+    number: 3000
+
+resources: {}
+
+health:
+  path: "/"
+  port: api
+  liveness:
+    initialDelaySeconds: 30
+    periodSeconds: 60
+    failureThreshold: 2
+    timeoutSeconds: 20
+  readiness:
+    initialDelaySeconds: 30
+    periodSeconds: 20
+    failureThreshold: 2
+    timeoutSeconds: 19
+
+envVars:
+    GO_ENV: production
+
+#ingress:
+#  targetPort: api
+#  externalDNS: true
+#  alb:
+#    tls: true

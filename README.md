@@ -550,3 +550,53 @@ This command will build the Docker image for two platforms (ARM and AMD CPU arch
 and push the result to Docker Hub.
 
 Note. To push it under your own Docker Hub namespace, you have to change the tag.
+
+## Deploy to a Kubernetes Cluster
+
+Note. For this step, you need to have `kubectl` and `helm` installed, and have the correct Kubernetes context set.
+
+On your Kubernetes cluster, create a namespace called `links-shortener-js`:
+
+```bash
+kubectl create namespace link-shortener-js
+```
+
+Then use the following command to deploy a cluster using the HashMap link shortener:
+
+```bash
+helm upgrade --install events -n link-shortener-js ./chart
+```
+
+Make sure everything is up and running:
+
+```bash
+kubectl get all -n link-shortener-js
+```
+
+The result should be similar to this:
+
+```
+NAME                                     READY   STATUS    RESTARTS   AGE
+pod/link-shortener-js-85995d6bcb-8lkdc   1/1     Running   0          9m10s
+
+NAME                        TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
+service/link-shortener-js   ClusterIP   10.128.22.104   <none>        3000/TCP   9m10s
+
+NAME                                READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/link-shortener-js   1/1     1            1           9m10s
+
+NAME                                           DESIRED   CURRENT   READY   AGE
+replicaset.apps/link-shortener-js-85995d6bcb   1         1         1       9m10s
+```
+
+Then you should be able to forward the port and test your deployment:
+
+```bash
+kubectl port-forward --namespace link-shortener-js svc/link-shortener-js 3000:3000
+```
+
+Then you can test as if it's running locally:
+
+```bash
+curl localhost:3000
+```
