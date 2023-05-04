@@ -1,5 +1,24 @@
 # Link Shortener
 
+This repo hosts a link shortener implemented using Nest.js and TypeScript.
+The link hashes can either be stored in a hashmap in memory or on a Redis database.
+
+A blog article based on this repo was written and is published on Docker's blog:
+
+- [How to Build and Deploy a URL Shortener Using TypeScript and Nest.js](https://www.docker.com/blog/how-to-build-and-deploy-a-url-shortener-using-typescript-and-nest-js/)
+
+The rest of this README contains instructions to create this project from scratch.
+
+## Table of Content
+
+- [Build From Scratch](#build-from-scratch)
+  * [Create Nest.js Project](#create-nestjs-project)
+  * [Add Shortening Logic](#add-shortening-logic)
+  * [Add a Repository](#add-a-repository)
+  * [Add a Real Database](#add-a-real-database)
+  * [Finalize the Backend](#finalize-the-backend)
+- [Push to Docker Registry](#push-to-docker-registry)
+
 ## Build From Scratch
 
 ### Create Nest.js Project
@@ -518,3 +537,16 @@ Take a look at the response:
 
 The hash differs on your machine. You can use it to redirect to the original link.
 Open a web browser and visit [`localhost:3000/350fzr`](http://localhost:3000/350fzr).
+
+## Push to Docker Registry
+
+To build the Docker image and push it to the Docker Hub, run the following command:
+
+```bash
+docker buildx build --platform linux/arm64,linux/amd64 --sbom=true --push -t aerabi/link-shortener-js:redis .
+```
+
+This command will build the Docker image for two platforms (ARM and AMD CPU architectures), package the SBOM attestations,
+and push the result to Docker Hub.
+
+Note. To push it under your own Docker Hub namespace, you have to change the tag.
